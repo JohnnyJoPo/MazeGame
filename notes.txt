@@ -1,0 +1,65 @@
+7/2/2021
+Maze Game
+
+IDEA -> Maze generator written in JavaScript that renders a maze using a grid display and lets the user play by using the arrow keys to move a red dot across the grid cells
+
+- Default page will mostly be empty
+-- Buttons to set maze dimensions
+--- Two inputs to hold maze width and height
+--- A button to randomly generate the maze using the input dimensions
+-- White space to hold the maze when it is created
+-- When the maze grid is generated, auto orient it to best fit the user's screen dimensions
+--- Grid cells must be squares and the same size
+--- Use CSS border or outline properties to draw the maze walls
+-- On-screen buttons to control the red dot throughout the maze
+--- Bind buttons to arrow keys
+--- Enable/Disable buttons based on valid movements from current cell
+-- Fifth button to auto solve the maze one move at a time
+--- Every time the dot is moved, calculate the route to the end of the maze based on the current position
+
+- Project research
+-- Brainstorm different algorithms to generate mazes
+-- Do research on existing algorithms and maze types
+--- Find or write an algorithm that makes a complex maze without loops, long corridors without junctions, etc
+
+- After initial release / Possible features to implement in the future
+-- Styling ideas (make the game more appealing to look at)
+--- Do research and practice on 3D effects
+--- Color scheme ideas
+---- IDEA 1: Color changes over time
+---- IDEA 2: Color changes based on proximity to the goal
+----- Colors could be colder the further from the goal
+----- Gradually transition to yellows and reds when the player gets closer
+---- IDEA 3: Color changes based on remaining moves
+----- Player could have limited number of moves to reach the goal (new idea for gameplay)
+---- IDEA 4: Colors based on maze theme
+-- Gameplay / Scripting ideas
+--- Add a scoring system to award more points for fewer moves to reach the goal
+--- Add a timer to count how long it takes to reach the goal
+--- Add a move limit: Reach the end before your run out of moves
+---- Move limit = Double the minimum number steps needed to reach the goal
+--- Add more objectives
+---- Keys to unlock doors in the maze
+---- Enemies that move towards the player each move or have other behaviors
+---- Treasures to collect that boost score or have other effects
+-- Maze theme Ideas
+--- Pyramid / Desert Temple
+---- Pharaoh's tomb aesthetic
+---- Enemies: Mummies, beetles, cobras, traps
+---- Collect gold and treasure from the maze and escape
+--- Outer Space
+---- Futuristic theme (stars, planets, nebulas, black holes, etc)
+---- Enemies: Aliens, rogue astroids, robots
+---- Collect ship parts from the maze to build a ship and escape
+--- Jailbreak
+---- Prison aesthetic (barbed wire, iron bars, cages, indoor setting)
+---- Enemies: Guards, guard dogs, other prisoners
+---- Navigate and escape from the maze-like prison
+--- Fantasy Kingdom
+---- Old medieval theme (knights, swords, wizards, dragons, anything Lord of the Rings)
+---- Enemies: Orcs, goblins, dragons, witches, mythic creatues
+---- Make your way though the dungeon
+--- Ocean Depths
+---- Underwater adventure theme (coral reefs, sharks, sunken treasure, fishies)
+---- Enemies: Sharks, giant squid, sea urchins, pirates
+---- Plunder a sunken ship for treasure and escape from the deep
