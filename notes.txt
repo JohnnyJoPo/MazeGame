@@ -75,7 +75,7 @@ IDEA -> Maze generator written in JavaScript that renders a maze using a grid di
 ---- Path cells with directional CSS borders
 ----- PROBLEM -> Borders take up space and are causing issues with breaking the layout
 ---- Path cells with div children
------ PROBLEM -> Dramitically increases the number of elements in the DOM needed to draw the maze
+----- PROBLEM -> Dramatically increases the number of elements in the DOM needed to draw the maze
 ----- Also, due to how the cells are drawn to fit a 1:1 aspect ratio (padding-top: 100%), all content is pushed to the bottom of a large empty space
 
 -- SCRIPT: Maze coordinates stored as a 3D array pointing to a number that represents the valid directions the player can make from that cell

@@ -3,22 +3,50 @@
     padding: 0px;
 }
 
-#wrapper {
-    width: 100%;
+body {margin: 20px;}
+
+#wrapper {width: 100%;}
+
+form {
+    display: grid;
+    width: 30%;
+    gap: 10px;
+    margin-bottom: 10px;
+    grid-template-columns: 80px 100px 1fr;
+    grid-template-rows: 1fr 1fr;
+}
+
+label {
+    grid-column: 1;
+}
+
+input {
+    grid-column: 2;
+}
+
+button {
+    grid-column: 3;
+    grid-row: 1 / span 2;
 }
 
 #maze {
     display: grid;
+    padding: auto;
     text-align: center;
-    margin: 2%;
-    gap: 5px;
-    background-color: red;
+    gap: 0px;
 }
 
 .cell {
     width: 100%;
     padding-top: 100%;
-    background-color: blue;
+}
+
+.wall {
+    background-color: #3f3f3f;
+}
+
+.path {
+    background-color: #cfcfcf;
 }
 
 #temp{
