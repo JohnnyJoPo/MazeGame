@@ -10,15 +10,20 @@
     <div id="wrapper">
         <p id="scriptCheck">This page requires JavaScript to work. Please enable JavaScript and reload this page.</p>
         <form>
-            <label for="rows">Rows</label>
-            <input type="text" id="rows">
-            <label for="columns">Columns</label>
-            <input type="text" id="columns">
+            <label for="rows" id="rowsLbl">Rows</label>
+            <input type="text" id="rowsIn">
+            <label for="columns" id="columnsLbl">Columns</label>
+            <input type="text" id="columnsIn">
             <button type="button" id="genBtn">Generate Maze</button>
+            <section id="ctrlContainer">
+                <button type="button" id="up" class="ctrlBtns" disabled>↑</button>
+                <button type="button" id="right" class="ctrlBtns" disabled>→</button>
+                <button type="button" id="down" class="ctrlBtns" disabled>↓</button>
+                <button type="button" id="left" class="ctrlBtns" disabled>←</button>
+            </section>
         </form>
         <p id="error"></p>
-        <div id="maze">
-        </div>
+        <div id="maze"></div>
     </div>
     <script src="script.js"></script>
 </body>

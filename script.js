@@ -1,11 +1,14 @@
 "use strict"
 
-let mazeCoord = [];
-let renderCoord = [];
-let divGrid = [];
-let nav = [1, 1];
-let winWidth = document.getElementById("wrapper").offsetWidth;
-let maze = document.getElementById("maze");
+var mazeCoord = [];
+var renderCoord = [];
+var divGrid = [];
+var nav = [1, 1];
+var maze = document.getElementById("maze");
+var upBtn = document.getElementById("up");
+var rightBtn = document.getElementById("right");
+var downBtn = document.getElementById("down");
+var leftBtn = document.getElementById("left");
 
 function init(){
     setEvents();
@@ -13,11 +16,15 @@ function init(){
     // expandArray();
     // drawMaze();
     document.getElementById("scriptCheck").remove();
+    upBtn.disabled = true;
+    rightBtn.disabled = true;
+    downBtn.disabled = true;
+    leftBtn.disabled = true;
 }
 
 function validateInput(){
-    let width = document.getElementById("columns");
-    let height = document.getElementById("rows");
+    let width = document.getElementById("columnsIn");
+    let height = document.getElementById("rowsIn");
     let errorMsg = document.getElementById("error");
     let regex = new RegExp("^[0-9]+$");
     errorMsg.innerText = ""
@@ -26,21 +33,21 @@ function validateInput(){
     width.value = width.value.trim();
     height.value = height.value.trim();
     
-    if (!(regex.test(height.value)) || height.value === "" || height.value < 4){
+    if (!(regex.test(height.value)) || height.value === "" || height.value < 4 || height.value > 100){
         height.style.backgroundColor = "#ffafaf";
         height.focus();
-        errorMsg.innerText = "Please enter a positive integer greater than 4";
+        errorMsg.innerText = "Please enter a positive integer between 4 and 100";
         return;
     }
     
-    if (!(regex.test(width.value)) || width.value === "" || width.value < 4) {
+    if (!(regex.test(width.value)) || width.value === "" || width.value < 4 || width.value > 100) {
         width.style.backgroundColor = "#ffafaf";
         width.focus();
-        errorMsg.innerText = "Please enter a positive integer greater than 4";
+        errorMsg.innerText = "Please enter a positive integer between 4 and 100";
         return;
     }
 
-    generateMaze(width.value, height.value);
+    generateMaze(height.value, width.value);
 }
 
 
@@ -62,8 +69,6 @@ function expandArray(){
     for(let i=0; i < (row*2)+1; i++){
         renderCoord[renderCoord.length-1].push(0);
     }
-
-    // renderCoord.push(bufferCol);
     
     let direction;
     for(let x=1; x < renderCoord.length; x+=2){
@@ -89,12 +94,48 @@ function expandArray(){
     drawMaze();
 }
 
+function updateControlButtons(){
+    let directionSwitch = divGrid[nav[0]][nav[1]].direction;
+    upBtn.disabled = true;
+    rightBtn.disabled = true;
+    downBtn.disabled = true;
+    leftBtn.disabled = true;
+    
+    if(directionSwitch >= 8){
+        directionSwitch -= 8;
+        leftBtn.disabled = false;
+    }
+    if(directionSwitch >= 4){
+        directionSwitch -= 4;
+        downBtn.disabled = false;
+    }
+    if(directionSwitch >= 2){
+        directionSwitch -= 2;
+        rightBtn.disabled = false;
+    }
+    if(directionSwitch === 1){
+        upBtn.disabled = false;
+    }
+}
+
+function moveDot(direction){
+    let oldDot = document.getElementsByClassName("dot")[0];
+    oldDot.classList.remove("dot");
+    
+    if(direction === 0){nav[1]--;}
+    else if(direction === 1){nav[0]++;}
+    else if(direction === 2){nav[1]++;}
+    else{nav[0]--;}
+    divGrid[nav[0]][nav[1]].classList.add("dot");
+    updateControlButtons();
+}
+
 function drawMaze(){
     let row = renderCoord[0].length;
     let col = renderCoord.length;
     divGrid = [];
-    maze.style.gridTemplateRows = `repeat(${row}, auto)`;
-    maze.style.gridTemplateColumns = `repeat(${col}, auto)`;
+    // maze.style.gridTemplateRows = `repeat(${row}, auto)`;
+    // maze.style.gridTemplateColumns = `repeat(${col}, auto)`;
     while(maze.firstChild){
         maze.removeChild(maze.firstChild);
     }
@@ -115,6 +156,32 @@ function drawMaze(){
             maze.appendChild(cell);
             divGrid[x][y] = cell;
         }
+    }
+    divGrid[1][1].classList.add("dot");
+    nav = [1, 1];
+    updateControlButtons();
+    resizeMaze();
+}
+
+function resizeMaze(){
+    if(divGrid.length === 0){
+        return;
+    }
+    let winWidth = window.innerWidth;
+    let formHeight = document.getElementsByTagName("form")[0].offsetHeight;
+    let winHeight = window.innerHeight - formHeight;
+    let hSize = divGrid.length;
+    let vSize = divGrid[0].length;
+    // console.log(formHeight);
+    // console.log(`${hSize} ${winWidth} ${winWidth/hSize}`);
+    // console.log(`${vSize} ${winHeight} ${winHeight/vSize}`);
+    if((winWidth/hSize) <= (winHeight/vSize)){
+        // console.log("Height is greater or equal");
+        document.documentElement.style.setProperty("--cell-size", `${(winWidth*0.9)/hSize}px`);
+    }
+    else{
+        // console.log("Width is greater");
+        document.documentElement.style.setProperty("--cell-size", `${(winHeight*0.95)/vSize}px`);    
     }
 }
 
@@ -223,7 +290,34 @@ function generateMaze(row, col){ // Rows and collumns should always be an odd nu
 function setEvents(){
     let genBtn = document.getElementById("genBtn");
 
+    window.addEventListener("resize", resizeMaze);
     genBtn.addEventListener("click", validateInput);
+    upBtn.addEventListener("click", function(){
+        moveDot(0);
+    });
+    rightBtn.addEventListener("click", function(){
+        moveDot(1);
+    });
+    downBtn.addEventListener("click", function(){
+        moveDot(2);
+    });
+    leftBtn.addEventListener("click", function(){
+        moveDot(3);
+    });
+    window.addEventListener("keydown", function(event){
+        if(event.key === "w"){
+            upBtn.click();
+        }
+        else if(event.key === "d"){
+            rightBtn.click();
+        }
+        else if(event.key === "s"){
+            downBtn.click();
+        }
+        else if(event.key === "a"){
+            leftBtn.click();
+        }
+    });
 }
 
 window.addEventListener("load", init);

@@ -3,6 +3,10 @@
     padding: 0px;
 }
 
+:root{
+    --cell-size: 10px;
+}
+
 body {margin: 20px;}
 
 #wrapper {width: 100%;}
@@ -12,8 +16,8 @@ form {
     width: 30%;
     gap: 10px;
     margin-bottom: 10px;
-    grid-template-columns: 80px 100px 1fr;
-    grid-template-rows: 1fr 1fr;
+    grid-template-columns: 60px 50px 120px;
+    grid-template-rows: 1fr 1fr 1fr;
 }
 
 label {
@@ -24,23 +28,63 @@ input {
     grid-column: 2;
 }
 
-button {
+#rowsLbl,
+#rowsIn {
+    grid-row: 1;
+}
+
+#columnsLbl,
+#columnsIn {
+    grid-row: 2;
+}
+
+#genBtn {
+    grid-column: 1 / span 2;
+    grid-row: 3;
+}
+
+#ctrlContainer {
     grid-column: 3;
-    grid-row: 1 / span 2;
+    grid-row: 1 / span 3;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+}
+
+#up {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+#right,
+#down,
+#left {
+    grid-row: 2;
+}
+
+#right {grid-column: 3;}
+
+#down {grid-column: 2;}
+
+#left {grid-column: 1;}
+
+.ctrlBtns {
+    width:40px;
+    height:40px;
 }
 
 #maze {
     display: grid;
-    padding: auto;
+    width: 1px;
     text-align: center;
     gap: 0px;
 }
 
 .cell {
-    width: 100%;
-    padding-top: 100%;
+    width: var(--cell-size);
+    height: var(--cell-size);
 }
-
+ 
 .wall {
     background-color: #3f3f3f;
 }
@@ -49,7 +93,6 @@ button {
     background-color: #cfcfcf;
 }
 
-#temp{
-    grid-row: 3;
-    grid-column: 2;
+.dot {
+    background-color: red;
 }
