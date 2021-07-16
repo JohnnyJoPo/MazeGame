@@ -5,6 +5,9 @@ var renderCoord = [];
 var divGrid = [];
 var nav = [1, 1];
 var maze = document.getElementById("maze");
+var width = document.getElementById("columnsIn");
+var height = document.getElementById("rowsIn");
+var routeChk = document.getElementById("routeChk");
 var upBtn = document.getElementById("up");
 var rightBtn = document.getElementById("right");
 var downBtn = document.getElementById("down");
@@ -12,9 +15,6 @@ var leftBtn = document.getElementById("left");
 
 function init(){
     setEvents();
-    // generateMaze(20, 40);
-    // expandArray();
-    // drawMaze();
     document.getElementById("scriptCheck").remove();
     upBtn.disabled = true;
     rightBtn.disabled = true;
@@ -23,33 +23,30 @@ function init(){
 }
 
 function validateInput(){
-    let width = document.getElementById("columnsIn");
-    let height = document.getElementById("rowsIn");
     let errorMsg = document.getElementById("error");
     let regex = new RegExp("^[0-9]+$");
-    errorMsg.innerText = ""
+    errorMsg.style.visibility = "hidden";
     width.style.backgroundColor = "white";
     height.style.backgroundColor = "white";
     width.value = width.value.trim();
     height.value = height.value.trim();
     
-    if (!(regex.test(height.value)) || height.value === "" || height.value < 4 || height.value > 100){
+    if (!(regex.test(height.value)) || height.value === "" || height.value < 5 || height.value > 101){
         height.style.backgroundColor = "#ffafaf";
         height.focus();
-        errorMsg.innerText = "Please enter a positive integer between 4 and 100";
+        errorMsg.style.visibility = "visible";
         return;
     }
     
-    if (!(regex.test(width.value)) || width.value === "" || width.value < 4 || width.value > 100) {
+    if (!(regex.test(width.value)) || width.value === "" || width.value < 5 || width.value > 101) {
         width.style.backgroundColor = "#ffafaf";
         width.focus();
-        errorMsg.innerText = "Please enter a positive integer between 4 and 100";
+        errorMsg.style.visibility = "visible";
         return;
     }
 
     generateMaze(height.value, width.value);
 }
-
 
 function expandArray(){
     let row = mazeCoord[0].length;
@@ -58,40 +55,53 @@ function expandArray(){
     for(let x=0; x < col; x++){
         renderCoord.push([], []);
         for(let y=0; y < row; y++){
-            renderCoord[x*2].push(0, 0);
-            renderCoord[(x*2)+1].push(0);
-            renderCoord[(x*2)+1].push(mazeCoord[x][y][0]);
+            renderCoord[x*2].push([0, false], [0, false]);
+            renderCoord[(x*2)+1].push([0, false]);
+            renderCoord[(x*2)+1].push([mazeCoord[x][y][0], mazeCoord[x][y][2]]);
         }
-        renderCoord[x*2].push(0);
-        renderCoord[(x*2)+1].push(0);
+        renderCoord[x*2].push([0, false]);
+        renderCoord[(x*2)+1].push([0, false]);
     }
     renderCoord.push([]);
     for(let i=0; i < (row*2)+1; i++){
-        renderCoord[renderCoord.length-1].push(0);
+        renderCoord[renderCoord.length-1].push([0, false]);
     }
     
     let direction;
+    let validRoute;
     for(let x=1; x < renderCoord.length; x+=2){
         for(let y=1; y < renderCoord[0].length; y+=2){
-            direction = renderCoord[x][y];
+            direction = renderCoord[x][y][0];
+            validRoute = renderCoord[x][y][1];
             if(direction >= 8){
                 direction -= 8;
-                renderCoord[x-1][y] = 10; // Enable left and right for the cell to the left
+                renderCoord[x-1][y][0] = 10; // Enable left and right for the cell to the left
+                if(validRoute && renderCoord[x-2][y][1]){
+                    renderCoord[x-1][y][1] = true;
+                }
             }
             if(direction >= 4){
                 direction -= 4;
-                renderCoord[x][y+1] = 5; // Enable up and down for the cell below
+                renderCoord[x][y+1][0] = 5; // Enable up and down for the cell below
+                if(validRoute && renderCoord[x][y+2][1]){
+                    renderCoord[x][y+1][1] = true;
+                }
             }
             if(direction >= 2){
                 direction -= 2;
-                renderCoord[x+1][y] = 10; // Enable left and right for the cell to the right
+                renderCoord[x+1][y][0] = 10; // Enable left and right for the cell to the right
+                if(validRoute && renderCoord[x+2][y][1]){
+                    renderCoord[x+1][y][1] = true;
+                }
             }
             if(direction === 1){
-                renderCoord[x][y-1] = 5; // Enable up and down for the cell above
+                renderCoord[x][y-1][0] = 5; // Enable up and down for the cell above
+                if(validRoute && renderCoord[x][y-2][1]){
+                    renderCoord[x][y-1][1] = true;
+                }
             }
         }
     }
-    drawMaze();
 }
 
 function updateControlButtons(){
@@ -120,22 +130,44 @@ function updateControlButtons(){
 
 function moveDot(direction){
     let oldDot = document.getElementsByClassName("dot")[0];
+    let oldX = nav[0];
+    let oldY = nav[1];
     oldDot.classList.remove("dot");
     
     if(direction === 0){nav[1]--;}
     else if(direction === 1){nav[0]++;}
     else if(direction === 2){nav[1]++;}
     else{nav[0]--;}
-    divGrid[nav[0]][nav[1]].classList.add("dot");
-    updateControlButtons();
+    if(nav[0] === (divGrid.length-2) && nav[1] === (divGrid[0].length-2)){
+        let newWidth = divGrid.length + 2;
+        let newHeight = divGrid[0].length + 2;
+        if(newWidth > 101){
+            newWidth = 101;
+        }
+        if(newHeight > 101){
+            newHeight = 101;
+        }
+        width.value = newWidth;
+        height.value = newHeight;
+        generateMaze(newHeight, newWidth);
+
+    }
+    else{
+        divGrid[nav[0]][nav[1]].classList.add("dot");
+        if(divGrid[oldX][oldY].classList.contains("route") && divGrid[nav[0]][nav[1]].classList.contains("route")){
+            divGrid[oldX][oldY].classList.remove("route");
+        }
+        else{
+            divGrid[nav[0]][nav[1]].classList.add("route");
+        }
+        updateControlButtons();
+    }
 }
 
 function drawMaze(){
     let row = renderCoord[0].length;
     let col = renderCoord.length;
     divGrid = [];
-    // maze.style.gridTemplateRows = `repeat(${row}, auto)`;
-    // maze.style.gridTemplateColumns = `repeat(${col}, auto)`;
     while(maze.firstChild){
         maze.removeChild(maze.firstChild);
     }
@@ -144,12 +176,15 @@ function drawMaze(){
         for(let y=0; y < row; y++){
             let cell = document.createElement("div");
             cell.classList.add("cell");
-            cell.direction = renderCoord[x][y];
+            cell.direction = renderCoord[x][y][0];
             if(cell.direction === 0){
                 cell.classList.add("wall");
             }
             else{
                 cell.classList.add("path");
+            }
+            if(renderCoord[x][y][1]){
+                cell.classList.add("route");
             }
             cell.style.gridRow = y + 1;
             cell.style.gridColumn = x + 1;
@@ -158,6 +193,7 @@ function drawMaze(){
         }
     }
     divGrid[1][1].classList.add("dot");
+    divGrid[col-2][row-2].style.backgroundColor = "#00ff00";
     nav = [1, 1];
     updateControlButtons();
     resizeMaze();
@@ -172,15 +208,10 @@ function resizeMaze(){
     let winHeight = window.innerHeight - formHeight;
     let hSize = divGrid.length;
     let vSize = divGrid[0].length;
-    // console.log(formHeight);
-    // console.log(`${hSize} ${winWidth} ${winWidth/hSize}`);
-    // console.log(`${vSize} ${winHeight} ${winHeight/vSize}`);
     if((winWidth/hSize) <= (winHeight/vSize)){
-        // console.log("Height is greater or equal");
         document.documentElement.style.setProperty("--cell-size", `${(winWidth*0.9)/hSize}px`);
     }
-    else{
-        // console.log("Width is greater");
+    else{        
         document.documentElement.style.setProperty("--cell-size", `${(winHeight*0.95)/vSize}px`);    
     }
 }
@@ -194,6 +225,8 @@ function generateMaze(row, col){ // Rows and collumns should always be an odd nu
         col++;
     }
 
+    width.value = col;
+    height.value = row;
     mazeCoord = [];
     renderCoord = [];
 
@@ -203,7 +236,7 @@ function generateMaze(row, col){ // Rows and collumns should always be an odd nu
         mazeCoord.push([]);    
         for(let y=0; y < genHeight; y++){
             mazeCoord[x].push([]);
-            mazeCoord[x][y] = [0, false, x, y] // [Valid directions, visited flag, X coord, Y coord]
+            mazeCoord[x][y] = [0, false, false, x, y] // [Valid directions, visited flag, correct route, X coord, Y coord]
         }
     }
     let xPos = Math.floor(Math.random() * mazeCoord.length);
@@ -225,8 +258,8 @@ function generateMaze(row, col){ // Rows and collumns should always be an odd nu
         possibleRoutes = [];
         currentIndex = Math.floor(Math.random() * stack.length);
         currentCell = stack[currentIndex];
-        xPos = currentCell[2];
-        yPos = currentCell[3];
+        xPos = currentCell[3];
+        yPos = currentCell[4];
         stack.splice(currentIndex, 1);
         if(xPos === 0){
             if(mazeCoord[xPos+1][yPos][1] === false){
@@ -269,9 +302,8 @@ function generateMaze(row, col){ // Rows and collumns should always be an odd nu
         if(possibleRoutes.length !== 0){
             stack.push(currentCell);
             selectedIndex = Math.floor(Math.random() * possibleRoutes.length);
-            possibleRoutes[selectedIndex][0][1] = true;
-            xNew = possibleRoutes[selectedIndex][0][2];
-            yNew = possibleRoutes[selectedIndex][0][3];
+            xNew = possibleRoutes[selectedIndex][0][3];
+            yNew = possibleRoutes[selectedIndex][0][4];
             direction = possibleRoutes[selectedIndex][1];
             sourceDirection = 0;
             if(direction === 1){sourceDirection = 4;}
@@ -284,13 +316,101 @@ function generateMaze(row, col){ // Rows and collumns should always be an odd nu
             mazeCoord[xNew][yNew][0] += sourceDirection;
         }
     }
+    calculateRoute();
     expandArray();
+    drawMaze();
+}
+
+function calculateRoute(){
+    let stack = [];
+    let currentCell;
+    let possibleRoutes;
+    let direction;
+    let xPos;
+    let yPos;
+    let selectedIndex;
+    let xNew;
+    let yNew;
+
+    for(let x=0; x < mazeCoord.length; x++){
+        for(let y=0; y < mazeCoord[0].length; y++){
+            mazeCoord[x][y][1] = false; // Reset all visited flags to false
+        }
+    }
+
+    mazeCoord[0][0][1] = true;
+    mazeCoord[0][0][2] = true;
+    mazeCoord[mazeCoord.length-1][mazeCoord[0].length-1][2] = true;
+    stack.push(mazeCoord[0][0]);
+
+    while(true){
+        possibleRoutes = [];
+        currentCell = stack[stack.length-1];
+        direction = currentCell[0];
+        xPos = currentCell[3];
+        yPos = currentCell[4];
+        stack.pop();
+        if(direction >= 8){
+            direction -= 8;
+            if(mazeCoord[xPos-1][yPos][1] === false){
+                possibleRoutes.push(mazeCoord[xPos-1][yPos]);
+            }
+        }
+        if(direction >= 4){
+            direction -= 4;
+            if(mazeCoord[xPos][yPos+1][1] === false){
+                possibleRoutes.push(mazeCoord[xPos][yPos+1]);
+            }
+        }
+        if(direction >= 2){
+            direction -= 2;
+            if(mazeCoord[xPos+1][yPos][1] === false){
+                possibleRoutes.push(mazeCoord[xPos+1][yPos]);
+            }
+        }
+        if(direction === 1){
+            if(mazeCoord[xPos][yPos-1][1] === false){
+                possibleRoutes.push(mazeCoord[xPos][yPos-1]);
+            }
+        }
+
+        if(possibleRoutes.length !== 0){
+            for(let i=0; i < possibleRoutes.length; i++){
+                if(possibleRoutes[i] === mazeCoord[mazeCoord.length-1][mazeCoord[0].length-1]){
+                    return;
+                }
+            }
+            stack.push(currentCell);
+            selectedIndex = Math.floor(Math.random() * possibleRoutes.length);
+            stack.push(possibleRoutes[selectedIndex]);
+            xNew = possibleRoutes[selectedIndex][3];
+            yNew = possibleRoutes[selectedIndex][4];
+            mazeCoord[xNew][yNew][1] = true;
+            mazeCoord[xNew][yNew][2] = true;
+        }
+        else{
+            mazeCoord[xPos][yPos][2] = false;
+        }
+    }
+}
+
+function updateRouteDisplay(){
+    console.log(divGrid);
+    if(routeChk.checked){
+        console.log("on");
+        document.documentElement.style.setProperty("--route-color", "#ffff00");
+    }
+    else{
+        console.log("off");
+        document.documentElement.style.setProperty("--route-color", "#cfcfcf");
+    }
 }
 
 function setEvents(){
     let genBtn = document.getElementById("genBtn");
-
+    let focusMsg = document.getElementById("focusMsg");
     window.addEventListener("resize", resizeMaze);
+    routeChk.addEventListener("change", updateRouteDisplay);
     genBtn.addEventListener("click", validateInput);
     upBtn.addEventListener("click", function(){
         moveDot(0);
@@ -305,18 +425,44 @@ function setEvents(){
         moveDot(3);
     });
     window.addEventListener("keydown", function(event){
-        if(event.key === "w"){
-            upBtn.click();
+        let keyCheck = ["w", "d", "s", "a", "ArrowUp", "ArrowRight", "ArrowDown", "ArrowLeft"];
+        let focusCheck = [];
+        let focusNodes = document.querySelectorAll("input, button");
+        for(let i=0; i<focusNodes.length; i++){
+            focusCheck.push(focusNodes[i]);
         }
-        else if(event.key === "d"){
-            rightBtn.click();
+        if(divGrid.length !== 0){
+            if(keyCheck.includes(event.key)){
+                if(!focusCheck.includes(document.activeElement)){
+                    event.preventDefault();
+                    focusMsg.style.visibility = "hidden";
+                    switch(event.key){
+                        case "w":
+                        case "ArrowUp":
+                            upBtn.click();
+                            break;
+                        case "d":
+                        case "ArrowRight":
+                            rightBtn.click();
+                            break;
+                        case "s":
+                        case "ArrowDown":
+                            downBtn.click();
+                            break;
+                        case "a":
+                        case "ArrowLeft":
+                            leftBtn.click();
+                            break;
+                    }
+                }
+                else{
+                    focusMsg.style.visibility = "visible";
+                }
+            }
         }
-        else if(event.key === "s"){
-            downBtn.click();
-        }
-        else if(event.key === "a"){
-            leftBtn.click();
-        }
+    });
+    maze.addEventListener("click", function(){
+        focusMsg.style.visibility = "hidden";
     });
 }
 

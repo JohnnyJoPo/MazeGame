@@ -5,19 +5,28 @@
 
 :root{
     --cell-size: 10px;
+    --route-color: #cfcfcf;
 }
 
 body {margin: 20px;}
 
 #wrapper {width: 100%;}
 
+#error,
+#focusMsg {
+    padding-bottom: 10px;
+    font-weight: bold;
+    color: red;
+    visibility: hidden;
+}
+
 form {
     display: grid;
     width: 30%;
     gap: 10px;
     margin-bottom: 10px;
-    grid-template-columns: 60px 50px 120px;
-    grid-template-rows: 1fr 1fr 1fr;
+    grid-template-columns: 80px 50px 180px;
+    grid-template-rows: 20px 20px 20px 30px;
 }
 
 label {
@@ -26,6 +35,12 @@ label {
 
 input {
     grid-column: 2;
+    justify-self: start;
+}
+
+#rowsIn,
+#columnsIn {
+    width: 50px;
 }
 
 #rowsLbl,
@@ -38,9 +53,14 @@ input {
     grid-row: 2;
 }
 
+#routeLbl,
+#routeChk {
+    grid-row: 3;
+}
+
 #genBtn {
     grid-column: 1 / span 2;
-    grid-row: 3;
+    grid-row: 4;
 }
 
 #ctrlContainer {
@@ -69,8 +89,8 @@ input {
 #left {grid-column: 1;}
 
 .ctrlBtns {
-    width:40px;
-    height:40px;
+    width:60px;
+    height:60px;
 }
 
 #maze {
@@ -87,10 +107,16 @@ input {
  
 .wall {
     background-color: #3f3f3f;
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.25);
+    z-index: 1;
 }
 
 .path {
     background-color: #cfcfcf;
+}
+
+.route {
+    background-color: var(--route-color);
 }
 
 .dot {
