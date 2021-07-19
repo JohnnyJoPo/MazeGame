@@ -1,3 +1,9 @@
+/*  Written by JohnnyJoPo -- https://github.com/JohnnyJoPo
+    On behalf of: N/A (personal hobby project for use as a web development portfolio piece)
+    July 19, 2021
+    CSS file for Maze Game
+*/
+
 * {
     margin: 0px;
     padding: 0px;
@@ -29,9 +35,7 @@ form {
     grid-template-rows: 20px 20px 20px 30px;
 }
 
-label {
-    grid-column: 1;
-}
+label {grid-column: 1;}
 
 input {
     grid-column: 2;
@@ -39,24 +43,16 @@ input {
 }
 
 #rowsIn,
-#columnsIn {
-    width: 50px;
-}
+#columnsIn {width: 50px;}
 
 #rowsLbl,
-#rowsIn {
-    grid-row: 1;
-}
+#rowsIn {grid-row: 1;}
 
 #columnsLbl,
-#columnsIn {
-    grid-row: 2;
-}
+#columnsIn {grid-row: 2;}
 
 #routeLbl,
-#routeChk {
-    grid-row: 3;
-}
+#routeChk {grid-row: 3;}
 
 #genBtn {
     grid-column: 1 / span 2;
@@ -78,9 +74,7 @@ input {
 
 #right,
 #down,
-#left {
-    grid-row: 2;
-}
+#left {grid-row: 2;}
 
 #right {grid-column: 3;}
 
@@ -111,14 +105,8 @@ input {
     z-index: 1;
 }
 
-.path {
-    background-color: #cfcfcf;
-}
+.path {background-color: #cfcfcf;}
 
-.route {
-    background-color: var(--route-color);
-}
+.route {background-color: var(--route-color);}
 
-.dot {
-    background-color: red;
-}
+.dot {background-color: red;}
