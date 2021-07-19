@@ -1,0 +1,98 @@
+7/2/2021
+Maze Game
+
+IDEA -> Maze generator written in JavaScript that renders a maze using a grid display and lets the user play by using the arrow keys to move a red dot across the grid cells
+
+- Default page will mostly be empty
+-- Buttons to set maze dimensions
+--- Two inputs to hold maze width and height
+--- A button to randomly generate the maze using the input dimensions
+-- White space to hold the maze when it is created
+-- When the maze grid is generated, auto orient it to best fit the user's screen dimensions
+--- Grid cells must be squares and the same size
+--- Use CSS border or outline properties to draw the maze walls
+-- On-screen buttons to control the red dot throughout the maze
+--- Bind buttons to arrow keys
+--- Enable/Disable buttons based on valid movements from current cell
+-- Fifth button to auto solve the maze one move at a time
+--- Every time the dot is moved, calculate the route to the end of the maze based on the current position
+
+- Project research
+-- Brainstorm different algorithms to generate mazes
+-- Do research on existing algorithms and maze types
+--- Find or write an algorithm that makes a complex maze without looping paths, long corridors without junctions, etc
+
+- After initial release / Possible features to implement in the future
+-- Styling ideas (make the game more appealing to look at)
+--- Do research and practice on 3D effects
+--- Color scheme ideas
+---- IDEA 1: Color changes over time
+---- IDEA 2: Color changes based on proximity to the goal
+----- Colors could be colder the further from the goal
+----- Gradually transition to yellows and reds when the player gets closer
+---- IDEA 3: Color changes based on remaining moves
+----- Player could have limited number of moves to reach the goal (new idea for gameplay)
+---- IDEA 4: Colors based on maze theme
+-- Gameplay / Scripting ideas
+--- Add a scoring system to award more points for fewer moves to reach the goal
+--- Add a timer to count how long it takes to reach the goal
+--- Add a move limit: Reach the end before your run out of moves
+---- Move limit = Double the minimum number steps needed to reach the goal
+--- Add more objectives
+---- Keys to unlock doors in the maze
+---- Enemies that move towards the player each move or have other behaviors
+---- Treasures to collect that boost score or have other effects
+-- Maze theme Ideas
+--- Pyramid / Desert Temple
+---- Pharaoh's tomb aesthetic
+---- Enemies: Mummies, beetles, cobras, traps
+---- Collect gold and treasure from the maze and escape
+--- Outer Space
+---- Futuristic theme (stars, planets, nebulas, black holes, etc)
+---- Enemies: Aliens, rogue astroids, robots
+---- Collect ship parts from the maze to build a ship and escape
+--- Jailbreak
+---- Prison aesthetic (barbed wire, iron bars, cages, indoor setting)
+---- Enemies: Guards, guard dogs, other prisoners
+---- Navigate and escape from the maze-like prison
+--- Fantasy Kingdom
+---- Old medieval theme (knights, swords, wizards, dragons, anything Lord of the Rings)
+---- Enemies: Orcs, goblins, dragons, witches, mythic creatues
+---- Make your way though the dungeon
+--- Ocean Depths
+---- Underwater adventure theme (coral reefs, sharks, sunken treasure, fishies)
+---- Enemies: Sharks, giant squid, sea urchins, pirates
+---- Plunder a sunken ship for treasure and escape from the deep
+
+- Work Notes
+-- SCRIPT: Have to impose max limits on maze dimensions due to algorithmic efficiency (will cause browser slowdown/crash if set too high)
+--- Due to nested loops to set up maze grid in HTML, efficiency is O(n^2)
+
+-- LAYOUT: Walls will represent an entire cell instead of every cell being a path with drawn walls
+--- Considered alternatatives:
+---- Path cells with CSS outlines
+----- PROBLEM -> There are no "partial" outlines like with borders
+---- Path cells with directional CSS borders
+----- PROBLEM -> Borders take up space and are causing issues with breaking the layout
+---- Path cells with div children
+----- PROBLEM -> Dramatically increases the number of elements in the DOM needed to draw the maze
+----- Also, due to how the cells are drawn to fit a 1:1 aspect ratio (padding-top: 100%), all content is pushed to the bottom of a large empty space
+
+-- SCRIPT: Maze coordinates stored as a 3D array pointing to a number that represents the valid directions the player can make from that cell
+--- [A, B, C, D]
+---- A is the directional number (0 to 15; 4-digit binary number)
+----- Start from 0, add numbers for all directions that are valid. Stored number will range from 0 (0000; no directions valid) to 15 (1111; all directions valid)
+----- For example, right and bottom accessable will have a value of 6 (0110)
+----- +1 (0001) -> Top accessable
+----- +2 (0010) -> Right accessable
+----- +4 (0100) -> Bottom accessable
+----- +8 (1000) -> Left accessable
+----- If position (4,7) allows to move left or up, then mazeCoord[4][7][0] = 9 (1001)
+---- B is the visited flag (used in maze generation)
+---- C is the X coordinate (used in maze generation)
+---- D is the Y coordinate (used in maze generation)
+----- C and D are necessary as mazeCoord values will be copied into another array that will not have indices match the coordinates
+
+-- SCRIPT: When converting mazeCoord into the grid, double the size of the grid and add 1
+--- If grid was generated in a 3x3 space, the drawn grid will be 7x7
+--- Extra buffer is needed to place walls

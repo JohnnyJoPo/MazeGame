@@ -1,0 +1,41 @@
+<!DOCTYPE html> 
+
+<!--
+    Written by JohnnyJoPo -- https://github.com/JohnnyJoPo
+    On behalf of: N/A (personal hobby project for use as a web development portfolio piece)
+    July 19, 2021
+    HTML file for Maze Game
+-->
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maze Game</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div id="wrapper">
+        <p id="scriptCheck">This page requires JavaScript to work. Please enable JavaScript and reload this page.</p>
+        <form>
+            <label for="rows" id="rowsLbl">Rows</label>
+            <input type="text" id="rowsIn">
+            <label for="columns" id="columnsLbl">Columns</label>
+            <input type="text" id="columnsIn">
+            <label for="routeChk" id="routeLbl">Show Route</label>
+            <input type="checkbox" id="routeChk">
+            <button type="button" id="genBtn">Generate Maze</button>
+            <section id="ctrlContainer">
+                <button type="button" id="up" class="ctrlBtns" disabled>↑</button>
+                <button type="button" id="right" class="ctrlBtns" disabled>→</button>
+                <button type="button" id="down" class="ctrlBtns" disabled>↓</button>
+                <button type="button" id="left" class="ctrlBtns" disabled>←</button>
+            </section>
+        </form>
+        <p id="error">Please enter a positive integer between 5 and 101</p>
+        <p id="focusMsg">Click on the maze to enable the WASD and arrow keys</p>
+        <div id="maze"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
