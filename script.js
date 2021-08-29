@@ -10,6 +10,9 @@ var mazeCoord = [];
 var renderCoord = [];
 var divGrid = [];
 var nav = [1, 1];
+var moves = 0;
+var clearMoves = 0;
+var score = 0;
 var maze = document.getElementById("maze");
 var width = document.getElementById("columnsIn");
 var height = document.getElementById("rowsIn");
@@ -18,6 +21,9 @@ var upBtn = document.getElementById("up");
 var rightBtn = document.getElementById("right");
 var downBtn = document.getElementById("down");
 var leftBtn = document.getElementById("left");
+var movesMsg = document.getElementById("moves");
+var clearMovesMsg = document.getElementById("clearMoves");
+var scoreMsg = document.getElementById("score");
 
 // Main startup function that sets up functionality
 function init(){
@@ -122,6 +128,8 @@ function validateInput(){
         return;
     }
 
+    score = 0;
+    scoreMsg.innerText = score;
     generateMaze(height.value, width.value);
 }
 
@@ -164,17 +172,22 @@ function generateMaze(row, col){
 
     while(stack.length !== 0){
         possibleRoutes = [];
-        currentIndex = Math.floor(Math.random() * stack.length);
+        if(Math.random() > 0.85){ // 85% chance to select the last added cell, 15% chance to select a random cell
+            currentIndex = Math.floor(Math.random() * stack.length);
+        }
+        else{
+            currentIndex = stack.length - 1;
+        }    
         currentCell = stack[currentIndex];
         xPos = currentCell[3];
         yPos = currentCell[4];
         stack.splice(currentIndex, 1);
-        if(xPos === 0){
+        if(xPos === 0){ // If currentCell is on the left edge of the maze
             if(mazeCoord[xPos+1][yPos][1] === false){
                 possibleRoutes.push([mazeCoord[xPos+1][yPos], 2]);
             }
         }
-        else if(xPos === (mazeCoord.length - 1)){
+        else if(xPos === (mazeCoord.length - 1)){ // If currentCell is on the right edge of the maze
             if(mazeCoord[xPos-1][yPos][1] === false){
                 possibleRoutes.push([mazeCoord[xPos-1][yPos], 8]);
             }
@@ -188,12 +201,12 @@ function generateMaze(row, col){
             }
         }
 
-        if(yPos === 0){
+        if(yPos === 0){ // If currentCell is on the top edge of the maze
             if(mazeCoord[xPos][yPos+1][1] === false){
                 possibleRoutes.push([mazeCoord[xPos][yPos+1], 4]);
             }
         }
-        else if(yPos === (mazeCoord[0].length - 1)){
+        else if(yPos === (mazeCoord[0].length - 1)){ // If currentCell is on the bottom edge of the maze
             if(mazeCoord[xPos][yPos-1][1] === false){
                 possibleRoutes.push([mazeCoord[xPos][yPos-1], 1]);
             }
@@ -214,10 +227,17 @@ function generateMaze(row, col){
             yNew = possibleRoutes[selectedIndex][0][4];
             direction = possibleRoutes[selectedIndex][1];
             sourceDirection = 0;
-            if(direction === 1){sourceDirection = 4;}
-            else if(direction === 2){sourceDirection = 8;}
-            else if(direction === 4){sourceDirection = 1;}
-            else if(direction === 8){sourceDirection = 2;}
+
+            // Directions; Any combination of the below values makes a number from 0 (no directions are valid) to 15 (all directions are valid)
+            // 1 = up
+            // 2 = right
+            // 4 = down
+            // 8 = left
+
+            if(direction === 1){sourceDirection = 4;} // If up is a valid direction, set down as valid for adjacent cell
+            else if(direction === 2){sourceDirection = 8;} // If right is a valid direction, set left as valid for adjacent cell
+            else if(direction === 4){sourceDirection = 1;} // If down is a valid direction, set up as valid for adjacent cell
+            else if(direction === 8){sourceDirection = 2;} // If left is a valid direction, set right as valid for adjacent cell
             stack.push(possibleRoutes[selectedIndex][0]);
             mazeCoord[xPos][yPos][0] += direction;
             mazeCoord[xNew][yNew][1] = true;
@@ -255,11 +275,10 @@ function calculateRoute(){
 
     while(true){
         possibleRoutes = [];
-        currentCell = stack[stack.length-1];
+        currentCell = stack.pop(); // [Valid directions, visited flag, correct route, X coord, Y coord]
         direction = currentCell[0];
         xPos = currentCell[3];
         yPos = currentCell[4];
-        stack.pop();
         if(direction >= 8){
             direction -= 8;
             if(mazeCoord[xPos-1][yPos][1] === false){
@@ -397,6 +416,10 @@ function drawMaze(){
         }
     }
 
+    moves = 0;
+    clearMoves = document.getElementsByClassName("route").length - 1;
+    movesMsg.innerText = moves;
+    clearMovesMsg.innerText = clearMoves;
     divGrid[1][1].classList.add("dot");
     divGrid[col-2][row-2].style.backgroundColor = "#00ff00";
     nav = [1, 1];
@@ -463,11 +486,14 @@ function moveDot(direction){
     // 2 = Down
     // 3 = Left
 
+    moves++;
     if(direction === 0){nav[1]--;}
     else if(direction === 1){nav[0]++;}
     else if(direction === 2){nav[1]++;}
     else{nav[0]--;}
     if(nav[0] === (divGrid.length-2) && nav[1] === (divGrid[0].length-2)){ // If goal is reached -> Generate new maze
+        score += Math.floor((clearMoves / moves) * 100);
+        scoreMsg.innerText = score;
         let newWidth = divGrid.length + 2;
         let newHeight = divGrid[0].length + 2;
         if(newWidth > 101){
@@ -489,6 +515,7 @@ function moveDot(direction){
         else{
             divGrid[nav[0]][nav[1]].classList.add("route");
         }
+        movesMsg.innerText = moves;
         updateControlButtons();
     }
 }
