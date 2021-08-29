@@ -10,6 +10,9 @@ var mazeCoord = [];
 var renderCoord = [];
 var divGrid = [];
 var nav = [1, 1];
+var moves = 0;
+var clearMoves = 0;
+var score = 0;
 var maze = document.getElementById("maze");
 var width = document.getElementById("columnsIn");
 var height = document.getElementById("rowsIn");
@@ -18,6 +21,24 @@ var upBtn = document.getElementById("up");
 var rightBtn = document.getElementById("right");
 var downBtn = document.getElementById("down");
 var leftBtn = document.getElementById("left");
+var movesMsg = document.getElementById("moves");
+var clearMovesMsg = document.getElementById("clearMoves");
+var scoreMsg = document.getElementById("score");
+
+// Constructor function for the object "Cell"
+function Cell(x, y){
+    this.dir = 0;
+    this.visited = false;
+    this.route = false;
+    this.x = x;
+    this.y = y;
+}
+
+// Constructor function for the object "Node"
+function Node(directions = 0, route = false){
+    this.dir = directions;
+    this.route = route;
+}
 
 // Main startup function that sets up functionality
 function init(){
@@ -122,10 +143,19 @@ function validateInput(){
         return;
     }
 
-    generateMaze(height.value, width.value);
+    score = 0;
+    scoreMsg.innerText = score;
+    createMaze(height.value, width.value);
 }
 
-// Creates a new maze with the dimensions of the input parameters
+// Creates and displays a new maze with the dimensions of the input parameters
+function createMaze(row, col){
+    generateMaze(row, col);
+    expandArray();
+    drawMaze();
+}
+
+// Uses dimension values passed through createMaze to generate new maze data
 function generateMaze(row, col){
     if(row % 2 === 0){
         row++;
@@ -144,163 +174,133 @@ function generateMaze(row, col){
         mazeCoord.push([]);    
         for(let y=0; y < genHeight; y++){
             mazeCoord[x].push([]);
-            mazeCoord[x][y] = [0, false, false, x, y] // [Valid directions, visited flag, correct route, X coord, Y coord]
+            mazeCoord[x][y] = new Cell(x, y); // directions, visited, route, x, y
         }
     }
-
-    let xPos = Math.floor(Math.random() * mazeCoord.length);
-    let yPos = Math.floor(Math.random() * mazeCoord[xPos].length);
+    
     let stack = [];
-    let currentIndex;
     let currentCell;
     let possibleRoutes;
     let selectedIndex;
-    let xNew;
-    let yNew;
     let direction;
     let sourceDirection;
-    mazeCoord[xPos][yPos][1] = true;
-    stack.push(mazeCoord[xPos][yPos]);
-
-    while(stack.length !== 0){
-        possibleRoutes = [];
-        currentIndex = Math.floor(Math.random() * stack.length);
-        currentCell = stack[currentIndex];
-        xPos = currentCell[3];
-        yPos = currentCell[4];
-        stack.splice(currentIndex, 1);
-        if(xPos === 0){
-            if(mazeCoord[xPos+1][yPos][1] === false){
-                possibleRoutes.push([mazeCoord[xPos+1][yPos], 2]);
-            }
-        }
-        else if(xPos === (mazeCoord.length - 1)){
-            if(mazeCoord[xPos-1][yPos][1] === false){
-                possibleRoutes.push([mazeCoord[xPos-1][yPos], 8]);
-            }
-        }
-        else{
-            if(mazeCoord[xPos+1][yPos][1] === false){
-                possibleRoutes.push([mazeCoord[xPos+1][yPos], 2]);
-            }
-            if(mazeCoord[xPos-1][yPos][1] === false){
-                possibleRoutes.push([mazeCoord[xPos-1][yPos], 8]);
-            }
-        }
-
-        if(yPos === 0){
-            if(mazeCoord[xPos][yPos+1][1] === false){
-                possibleRoutes.push([mazeCoord[xPos][yPos+1], 4]);
-            }
-        }
-        else if(yPos === (mazeCoord[0].length - 1)){
-            if(mazeCoord[xPos][yPos-1][1] === false){
-                possibleRoutes.push([mazeCoord[xPos][yPos-1], 1]);
-            }
-        }
-        else{
-            if(mazeCoord[xPos][yPos+1][1] === false){
-                possibleRoutes.push([mazeCoord[xPos][yPos+1], 4]);
-            }
-            if(mazeCoord[xPos][yPos-1][1] === false){
-                possibleRoutes.push([mazeCoord[xPos][yPos-1], 1]);
-            }
-        }
-
-        if(possibleRoutes.length !== 0){
-            stack.push(currentCell);
-            selectedIndex = Math.floor(Math.random() * possibleRoutes.length);
-            xNew = possibleRoutes[selectedIndex][0][3];
-            yNew = possibleRoutes[selectedIndex][0][4];
-            direction = possibleRoutes[selectedIndex][1];
-            sourceDirection = 0;
-            if(direction === 1){sourceDirection = 4;}
-            else if(direction === 2){sourceDirection = 8;}
-            else if(direction === 4){sourceDirection = 1;}
-            else if(direction === 8){sourceDirection = 2;}
-            stack.push(possibleRoutes[selectedIndex][0]);
-            mazeCoord[xPos][yPos][0] += direction;
-            mazeCoord[xNew][yNew][1] = true;
-            mazeCoord[xNew][yNew][0] += sourceDirection;
-        }
-    }
-    calculateRoute();
-    expandArray();
-    drawMaze();
-}
-
-// Analyzes the created maze, and charts a route that leads to the goal
-// Likely to be merged into generateMaze in a future update due to similar code (likely redundancy)
-function calculateRoute(){
-    let stack = [];
-    let currentCell;
-    let possibleRoutes;
-    let direction;
-    let xPos;
-    let yPos;
-    let selectedIndex;
+    let x;
+    let y;
     let xNew;
     let yNew;
-
-    for(let x=0; x < mazeCoord.length; x++){
-        for(let y=0; y < mazeCoord[0].length; y++){
-            mazeCoord[x][y][1] = false; // Reset all visited flags to false
-        }
-    }
-
-    mazeCoord[0][0][1] = true;
-    mazeCoord[0][0][2] = true;
-    mazeCoord[mazeCoord.length-1][mazeCoord[0].length-1][2] = true;
-    stack.push(mazeCoord[0][0]);
-
+    let xMax = mazeCoord.length - 1;
+    let yMax = mazeCoord[0].length - 1;
+    let routingFlag = false;
+    
     while(true){
-        possibleRoutes = [];
-        currentCell = stack[stack.length-1];
-        direction = currentCell[0];
-        xPos = currentCell[3];
-        yPos = currentCell[4];
-        stack.pop();
-        if(direction >= 8){
-            direction -= 8;
-            if(mazeCoord[xPos-1][yPos][1] === false){
-                possibleRoutes.push(mazeCoord[xPos-1][yPos]);
-            }
-        }
-        if(direction >= 4){
-            direction -= 4;
-            if(mazeCoord[xPos][yPos+1][1] === false){
-                possibleRoutes.push(mazeCoord[xPos][yPos+1]);
-            }
-        }
-        if(direction >= 2){
-            direction -= 2;
-            if(mazeCoord[xPos+1][yPos][1] === false){
-                possibleRoutes.push(mazeCoord[xPos+1][yPos]);
-            }
-        }
-        if(direction === 1){
-            if(mazeCoord[xPos][yPos-1][1] === false){
-                possibleRoutes.push(mazeCoord[xPos][yPos-1]);
-            }
-        }
 
-        if(possibleRoutes.length !== 0){
-            for(let i=0; i < possibleRoutes.length; i++){
-                if(possibleRoutes[i] === mazeCoord[mazeCoord.length-1][mazeCoord[0].length-1]){
-                    return;
+        // Loop makes two iterations
+        // First iteration generates maze data, routingFlag set to TRUE at end
+        // Second iteration uses maze data to find the route from beginning to end, returns out of function when the end point is found
+
+        if(routingFlag){ // Reset all visited flags to false
+            for(let x=0; x <= xMax; x++){
+                for(let y=0; y <= yMax; y++){
+                    mazeCoord[x][y].visited = false;
                 }
             }
-            stack.push(currentCell);
-            selectedIndex = Math.floor(Math.random() * possibleRoutes.length);
-            stack.push(possibleRoutes[selectedIndex]);
-            xNew = possibleRoutes[selectedIndex][3];
-            yNew = possibleRoutes[selectedIndex][4];
-            mazeCoord[xNew][yNew][1] = true;
-            mazeCoord[xNew][yNew][2] = true;
+            mazeCoord[0][0].route = true; // Add start point to route
+            mazeCoord[xMax][yMax].route = true; // Add end point to route
         }
-        else{
-            mazeCoord[xPos][yPos][2] = false;
+
+        mazeCoord[0][0].visited = true; // Set start point as visited
+        stack.push(mazeCoord[0][0]);
+
+        while(stack.length !== 0 || routingFlag){
+            possibleRoutes = [];
+            if(Math.random() < 0.85 || routingFlag){ // 85% chance to select the last added cell; 100% chance if searching for route
+                currentCell = stack.pop();
+            }
+            else{ // 15% chance to select a random cell
+                currentCell = stack.splice(Math.floor(Math.random() * stack.length), 1)[0];
+            }
+            x = currentCell.x;
+            y = currentCell.y;
+
+            if(!routingFlag){ // First iteration: Generates directional data for cells adjacent to the current cell
+                if(x !== xMax && mazeCoord[x+1][y].visited === false){
+                    possibleRoutes.push([mazeCoord[x+1][y], 2]);
+                }
+                if(x !== 0 && mazeCoord[x-1][y].visited === false){
+                    possibleRoutes.push([mazeCoord[x-1][y], 8]);
+                }
+                if(y !== yMax && mazeCoord[x][y+1].visited === false){
+                    possibleRoutes.push([mazeCoord[x][y+1], 4]);
+                }
+                if(y !== 0 && mazeCoord[x][y-1].visited === false){
+                    possibleRoutes.push([mazeCoord[x][y-1], 1]);
+                }
+            }
+            else{ // Second iteration: Uses existing directional data to find potential routes
+                direction = currentCell.dir;
+                if(direction >= 8){
+                    direction -= 8;
+                    if(mazeCoord[x-1][y].visited === false){
+                        possibleRoutes.push([mazeCoord[x-1][y], 0]);
+                    }
+                }
+                if(direction >= 4){
+                    direction -= 4;
+                    if(mazeCoord[x][y+1].visited === false){
+                        possibleRoutes.push([mazeCoord[x][y+1], 0]);
+                    }
+                }
+                if(direction >= 2){
+                    direction -= 2;
+                    if(mazeCoord[x+1][y].visited === false){
+                        possibleRoutes.push([mazeCoord[x+1][y], 0]);
+                    }
+                }
+                if(direction === 1){
+                    if(mazeCoord[x][y-1].visited === false){
+                        possibleRoutes.push([mazeCoord[x][y-1], 0]);
+                    }
+                }
+            }
+            if(possibleRoutes.length !== 0){
+                for(let i=0; i < possibleRoutes.length; i++){
+                    if(routingFlag && possibleRoutes[i][0] === mazeCoord[xMax][yMax]){ // If endpoint is adjacent to current cell & loop is in second iteration
+                        return;
+                    }
+                }
+                stack.push(currentCell);
+                selectedIndex = Math.floor(Math.random() * possibleRoutes.length);
+                stack.push(possibleRoutes[selectedIndex][0]);
+                xNew = possibleRoutes[selectedIndex][0].x;
+                yNew = possibleRoutes[selectedIndex][0].y;
+                mazeCoord[xNew][yNew].visited = true;
+                if(!routingFlag){
+                    direction = possibleRoutes[selectedIndex][1];
+                    sourceDirection = 0;
+
+                    // Directions; Any combination of the below values makes a number from 0 (no directions are valid) to 15 (all directions are valid)
+                    // 1 = up
+                    // 2 = right
+                    // 4 = down
+                    // 8 = left
+
+                    if(direction === 1){sourceDirection = 4;} // If up is a valid direction, set down as valid for adjacent cell
+                    else if(direction === 2){sourceDirection = 8;} // If right is a valid direction, set left as valid for adjacent cell
+                    else if(direction === 4){sourceDirection = 1;} // If down is a valid direction, set up as valid for adjacent cell
+                    else if(direction === 8){sourceDirection = 2;} // If left is a valid direction, set right as valid for adjacent cell
+                    
+                    mazeCoord[x][y].dir += direction;
+                    mazeCoord[xNew][yNew].dir += sourceDirection;
+                }
+                else{
+                    mazeCoord[xNew][yNew].route = true;
+                }
+            }
+            else if(routingFlag){
+                mazeCoord[x][y].route = false;
+            }
         }
+        routingFlag = true;
     }
 }
 
@@ -315,49 +315,49 @@ function expandArray(){
     for(let x=0; x < col; x++){
         renderCoord.push([], []);
         for(let y=0; y < row; y++){
-            renderCoord[x*2].push([0, false], [0, false]);
-            renderCoord[(x*2)+1].push([0, false]);
-            renderCoord[(x*2)+1].push([mazeCoord[x][y][0], mazeCoord[x][y][2]]);
+            renderCoord[x*2].push(new Node(), new Node());
+            renderCoord[(x*2)+1].push(new Node());
+            renderCoord[(x*2)+1].push(new Node(mazeCoord[x][y].dir, mazeCoord[x][y].route));
         }
-        renderCoord[x*2].push([0, false]);
-        renderCoord[(x*2)+1].push([0, false]);
+        renderCoord[x*2].push(new Node());
+        renderCoord[(x*2)+1].push(new Node());
     }
     renderCoord.push([]);
     for(let i=0; i < (row*2)+1; i++){
-        renderCoord[renderCoord.length-1].push([0, false]);
+        renderCoord[renderCoord.length-1].push(new Node());
     }
     
     let direction;
     let validRoute;
     for(let x=1; x < renderCoord.length; x+=2){
         for(let y=1; y < renderCoord[0].length; y+=2){
-            direction = renderCoord[x][y][0];
-            validRoute = renderCoord[x][y][1];
+            direction = renderCoord[x][y].dir;
+            validRoute = renderCoord[x][y].route;
             if(direction >= 8){
                 direction -= 8;
-                renderCoord[x-1][y][0] = 10; // Enable left and right for the cell to the left
-                if(validRoute && renderCoord[x-2][y][1]){
-                    renderCoord[x-1][y][1] = true;
+                renderCoord[x-1][y].dir = 10; // Enable left and right for the cell to the left
+                if(validRoute && renderCoord[x-2][y].route){
+                    renderCoord[x-1][y].route = true;
                 }
             }
             if(direction >= 4){
                 direction -= 4;
-                renderCoord[x][y+1][0] = 5; // Enable up and down for the cell below
-                if(validRoute && renderCoord[x][y+2][1]){
-                    renderCoord[x][y+1][1] = true;
+                renderCoord[x][y+1].dir = 5; // Enable up and down for the cell below
+                if(validRoute && renderCoord[x][y+2].route){
+                    renderCoord[x][y+1].route = true;
                 }
             }
             if(direction >= 2){
                 direction -= 2;
-                renderCoord[x+1][y][0] = 10; // Enable left and right for the cell to the right
-                if(validRoute && renderCoord[x+2][y][1]){
-                    renderCoord[x+1][y][1] = true;
+                renderCoord[x+1][y].dir = 10; // Enable left and right for the cell to the right
+                if(validRoute && renderCoord[x+2][y].route){
+                    renderCoord[x+1][y].route = true;
                 }
             }
             if(direction === 1){
-                renderCoord[x][y-1][0] = 5; // Enable up and down for the cell above
-                if(validRoute && renderCoord[x][y-2][1]){
-                    renderCoord[x][y-1][1] = true;
+                renderCoord[x][y-1].dir = 5; // Enable up and down for the cell above
+                if(validRoute && renderCoord[x][y-2].route){
+                    renderCoord[x][y-1].route = true;
                 }
             }
         }
@@ -378,25 +378,29 @@ function drawMaze(){
     for(let x=0; x < col; x++){ // Creates a new div element for each cell in the maze
         divGrid.push([]);
         for(let y=0; y < row; y++){
-            let cell = document.createElement("div");
-            cell.classList.add("cell");
-            cell.direction = renderCoord[x][y][0];
-            if(cell.direction === 0){
-                cell.classList.add("wall");
+            let divCell = document.createElement("div");
+            divCell.classList.add("cell");
+            divCell.direction = renderCoord[x][y].dir;
+            if(divCell.direction === 0){
+                divCell.classList.add("wall");
             }
             else{
-                cell.classList.add("path");
+                divCell.classList.add("path");
             }
-            if(renderCoord[x][y][1]){
-                cell.classList.add("route");
+            if(renderCoord[x][y].route){
+                divCell.classList.add("route");
             }
-            cell.style.gridRow = y + 1;
-            cell.style.gridColumn = x + 1;
-            maze.appendChild(cell);
-            divGrid[x][y] = cell;
+            divCell.style.gridRow = y + 1;
+            divCell.style.gridColumn = x + 1;
+            maze.appendChild(divCell);
+            divGrid[x][y] = divCell;
         }
     }
 
+    moves = 0;
+    clearMoves = document.getElementsByClassName("route").length - 1;
+    movesMsg.innerText = moves;
+    clearMovesMsg.innerText = clearMoves;
     divGrid[1][1].classList.add("dot");
     divGrid[col-2][row-2].style.backgroundColor = "#00ff00";
     nav = [1, 1];
@@ -463,11 +467,14 @@ function moveDot(direction){
     // 2 = Down
     // 3 = Left
 
+    moves++;
     if(direction === 0){nav[1]--;}
     else if(direction === 1){nav[0]++;}
     else if(direction === 2){nav[1]++;}
     else{nav[0]--;}
     if(nav[0] === (divGrid.length-2) && nav[1] === (divGrid[0].length-2)){ // If goal is reached -> Generate new maze
+        score += Math.floor((clearMoves / moves) * 100);
+        scoreMsg.innerText = score;
         let newWidth = divGrid.length + 2;
         let newHeight = divGrid[0].length + 2;
         if(newWidth > 101){
@@ -478,7 +485,7 @@ function moveDot(direction){
         }
         width.value = newWidth;
         height.value = newHeight;
-        generateMaze(newHeight, newWidth);
+        createMaze(newHeight, newWidth);
     }
 
     else{ // If goal is not reached -> Update current location and route to goal
@@ -489,6 +496,7 @@ function moveDot(direction){
         else{
             divGrid[nav[0]][nav[1]].classList.add("route");
         }
+        movesMsg.innerText = moves;
         updateControlButtons();
     }
 }
